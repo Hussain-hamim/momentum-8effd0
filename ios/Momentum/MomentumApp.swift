@@ -1,25 +1,30 @@
 import SwiftUI
+import SwiftData
 
 @main
 struct MomentumApp: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
+    let container: ModelContainer
+
+    init() {
+        do {
+            let schema = Schema([
+                Habit.self,
+                HabitCompletionLog.self
+            ])
+            let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+            container = try ModelContainer(for: schema, configurations: [modelConfiguration])
+
+            // Seed default initial habits on first launch
+            StreakCalculator.seedDefaultHabits(in: container.mainContext)
+        } catch {
+            fatalError("Could not initialize SwiftData ModelContainer: \(error)")
         }
     }
-}
 
-struct ContentView: View {
-    var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "sparkles")
-                .font(.largeTitle)
-            Text("Your app is ready.")
-                .font(.title)
-                .fontWeight(.semibold)
-            Text("Ask 10x to start building.")
-                .foregroundStyle(.secondary)
+    var body: some Scene {
+        WindowGroup {
+            MainTabView()
         }
-        .padding()
+        .modelContainer(container)
     }
 }
